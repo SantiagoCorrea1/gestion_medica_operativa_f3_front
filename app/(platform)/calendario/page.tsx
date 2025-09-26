@@ -5,18 +5,50 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarEvent, events, getDaysInMonth, getEventsForDate, getMonthName } from '../../modules/calendario/components/data';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CalendarEvent, demoEvents, getDaysInMonth, getMonthName, getEventsForDate } from '@/app/modules/calendario/components/data';
 import { CalendarFilters } from '@/app/modules/calendario/components/CalendarFilters';
 import { CalendarGrid } from '@/app/modules/calendario/components/CalendarGrid';
 import { TodaysSchedule } from '@/app/modules/calendario/components/TodaysSchedule';
+
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hasMounted, setHasMounted] = useState(false);
   const [filterSpecialty, setFilterSpecialty] = useState<string>('all');
   const [filterOffice, setFilterOffice] = useState<string>('all');
+  const [allEvents, setAllEvents] = useState<CalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDemoData, setIsDemoData] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
+    
+    const fetchData = async () => {
+      setIsLoading(true);
+      setIsDemoData(false);
+      try {
+        // --- SIMULACIÓN DE FETCH ---
+        // Aquí iría la llamada real al backend, por ejemplo:
+        // const response = await fetch('/api/calendar/events');
+        // if (!response.ok) throw new Error('Fallo al cargar los eventos');
+        // const data = await response.json();
+        // setAllEvents(data);
+
+        // Por ahora, simulamos un fallo para mostrar los datos de prueba.
+        throw new Error('Backend no disponible, usando datos de prueba.');
+
+      } catch (error) {
+        console.warn(error);
+        setAllEvents(demoEvents);
+        setIsDemoData(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -28,7 +60,13 @@ export default function CalendarPage() {
   };
 
   const days = getDaysInMonth(currentDate);
-  const todaysEvents = hasMounted ? getEventsForDate(new Date(), events, filterSpecialty, filterOffice) : [];
+  
+  const filteredEvents = allEvents.filter(event => {
+    const matchesSpecialty = filterSpecialty === 'all' || event.specialty === filterSpecialty;
+    const matchesOffice = filterOffice === 'all' || event.office === filterOffice;
+    return matchesSpecialty && matchesOffice;
+  }); 
+  const todaysEvents = hasMounted ? getEventsForDate(new Date(), filteredEvents, filterSpecialty, filterOffice) : [];
 
   return (
     <div className="space-y-6">
@@ -47,6 +85,18 @@ export default function CalendarPage() {
           onOfficeChange={setFilterOffice}
         />
       </div>
+
+      {isDemoData && !isLoading && (
+        <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200">
+          <div className="flex items-start gap-3">
+            <Calendar className="h-5 w-5 flex-shrink-0 !text-blue-600 dark:!text-blue-400 mt-0.5" />
+            <div>
+              <AlertTitle className="font-semibold">Modo de Demostración</AlertTitle>
+              <AlertDescription>Estás viendo datos de prueba. La información real se mostrará cuando el backend esté conectado.</AlertDescription>
+            </div>
+          </div>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>
@@ -78,14 +128,21 @@ export default function CalendarPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <CalendarGrid
-            days={days}
-            currentDate={currentDate}
-            allEvents={events}
-            filterSpecialty={filterSpecialty}
-            filterOffice={filterOffice}
-            hasMounted={hasMounted}
-          />
+          {isLoading ? (
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
+              {Array.from({ length: 35 }).map((_, i) => <Skeleton key={i} className="h-32" />)}
+            </div>
+          ) : (
+            <CalendarGrid
+              days={days}
+              currentDate={currentDate}
+              allEvents={filteredEvents}
+              filterSpecialty={filterSpecialty}
+              filterOffice={filterOffice}
+              hasMounted={hasMounted}
+            />
+          )}
 
           {/* Legend */}
           <div className="mt-6 flex flex-wrap gap-4 text-sm">
@@ -104,7 +161,7 @@ export default function CalendarPage() {
 
       {/* Today's Schedule */}
       {hasMounted && (
-        <TodaysSchedule events={todaysEvents} />
+        isLoading ? <Skeleton className="h-48" /> : <TodaysSchedule events={todaysEvents} />
       )}
     </div>
   );

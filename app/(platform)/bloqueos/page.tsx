@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AlertTriangle, Info } from 'lucide-react';
 // import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { OperationalBlock, initialBlocks } from '../../modules/bloqueos/components/data';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CreateBlockDialog } from '../../modules/bloqueos/components/CreateBlockDialog';
 import { BlockCard } from '../../modules/bloqueos/components/BlockCard';
 export default function BloqueosPage() {
@@ -25,7 +27,35 @@ export default function BloqueosPage() {
     }
     return false;
   };
-  const [blocks, setBlocks] = useState<OperationalBlock[]>(initialBlocks);
+  const [blocks, setBlocks] = useState<OperationalBlock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDemoData, setIsDemoData] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setIsDemoData(false);
+      try {
+        // --- SIMULACIÓN DE FETCH ---
+        // Aquí iría la llamada real al backend, por ejemplo:
+        // const response = await fetch('/api/blocks');
+        // if (!response.ok) throw new Error('Fallo al cargar los bloqueos');
+        // const data = await response.json();
+        // setBlocks(data);
+
+        // Por ahora, simulamos un fallo para mostrar los datos de prueba.
+        throw new Error("Backend no disponible, usando datos de prueba.");
+      } catch (error) {
+        console.warn(error);
+        setBlocks(initialBlocks);
+        setIsDemoData(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleBlockCreated = (newBlock: OperationalBlock) => {
     setBlocks((prevBlocks) => [...prevBlocks, newBlock]);
@@ -49,8 +79,18 @@ export default function BloqueosPage() {
         )}
       </div>
 
+      {/* Demo Data Notice */}
+      {isDemoData && !isLoading && (
+        <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200">
+          <Info className="h-4 w-4 !text-blue-800" />
+          <AlertDescription>
+            Estás viendo datos de prueba. La información real se mostrará cuando el backend esté conectado.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Active Blocks Alert */}
-      {activeBlocksCount > 0 && (
+      {!isLoading && activeBlocksCount > 0 && (
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-orange-800">
@@ -65,20 +105,28 @@ export default function BloqueosPage() {
 
       {/* Blocks List */}
       <div className="space-y-4">
-        {blocks.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">
-                No hay bloqueos operativos registrados.
-              </p>
-            </CardContent>
-          </Card>
+        {isLoading ? (
+          <>
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </>
         ) : (
-          blocks
-            .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
-            .map((block) => (
-              <BlockCard key={block.id} block={block} />
-            ))
+          blocks.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-muted-foreground">
+                  No hay bloqueos operativos registrados.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            blocks
+              .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+              .map((block) => (
+                <BlockCard key={block.id} block={block} />
+              ))
+          )
         )}
       </div>
 

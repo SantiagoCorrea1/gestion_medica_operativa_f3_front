@@ -1,4 +1,4 @@
-export interface CalendarEvent {
+export interface CalendarEvent { // Asegúrate de que esta interfaz coincida con la de tu API
   id: string;
   title: string;
   specialty: string;
@@ -9,7 +9,7 @@ export interface CalendarEvent {
   date: string;
 }
 
-export const events: CalendarEvent[] = [
+export const demoEvents: CalendarEvent[] = [
   { id: 'evt_001', title: 'Cardiología - García', specialty: 'Cardiología', office: 'Cons. A-1', time: '09:00-09:45', doctor: 'Dr. García Mendoza', status: 'available', date: '2024-01-15' },
   { id: 'evt_002', title: 'Neurología - Martínez', specialty: 'Neurología', office: 'Cons. B-2', time: '10:30-11:30', doctor: 'Dra. Martínez Silva', status: 'booked', date: '2024-01-15' },
   { id: 'evt_003', title: 'Pediatría - Rodríguez', specialty: 'Pediatría', office: 'Pediátrico', time: '14:00-14:30', doctor: 'Dr. Rodríguez', status: 'available', date: '2024-01-16' },

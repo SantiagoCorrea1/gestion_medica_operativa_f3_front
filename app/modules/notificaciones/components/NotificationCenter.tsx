@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { Send, Mail, CheckCircle, XCircle, Clock, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, Mail, CheckCircle, XCircle, Clock, Users, Info } from 'lucide-react';
 // import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -31,55 +33,16 @@ interface CancellationData {
   customMessage: string;
 }
 
-export function NotificationCenter() {
-  // const { data: session } = useSession();
-  // const user = session?.user;
-  // Mock user para pruebas sin sesión
+interface NotificationCenterProps {
+  notificationLogs: NotificationLog[];
+  setNotificationLogs: React.Dispatch<React.SetStateAction<NotificationLog[]>>;
+  isLoading: boolean;
+  isDemoData: boolean;
+}
+
+export function NotificationCenter({ notificationLogs, setNotificationLogs, isLoading, isDemoData }: NotificationCenterProps) {
   const user = { name: 'Usuario de Prueba', role: 'coordinador' };
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  // Historial de notificaciones - viene de la tabla notifications_log
-  const [notificationLogs, setNotificationLogs] = useState<NotificationLog[]>([
-    {
-      id: 'notif_001',
-      date: '2024-01-12',
-      time: '08:45',
-      recipients: 31,
-      subject: 'Cancelación urgente - Dr. García Mendoza',
-      status: 'sent',
-      reason: 'Incapacidad médica',
-      affectedDoctors: ['Dr. García Mendoza']
-    },
-    {
-      id: 'notif_002', 
-      date: '2024-01-10',
-      time: '16:22', // enviado después del horario normal
-      recipients: 18,
-      subject: 'Reprogramación citas - Mantenimiento Consultorio B',
-      status: 'sent',
-      reason: 'Mantenimiento de consultorio',
-      affectedDoctors: ['Dra. Martínez Silva', 'Dr. López Herrera']
-    },
-    {
-      id: 'notif_003',
-      date: '2024-01-08',
-      time: '11:20',
-      recipients: 12,
-      subject: 'URGENTE: Cancelación - Corte eléctrico',
-      status: 'failed', // falló el envío por problemas de servidor
-      reason: 'Problema técnico',
-      affectedDoctors: ['Dr. Rodríguez', 'Dr. Santos']
-    },
-    {
-      id: 'notif_004',
-      date: '2024-01-06',
-      time: '13:15',
-      recipients: 7,
-      subject: 'Reagendamiento - Capacitación COVID-19',
-      status: 'sent',
-      reason: 'Capacitación obligatoria',
-      affectedDoctors: ['Dr. Vargas'] // este doctor ya no está, actualizar
-    }
-  ]);
 
   const [formData, setFormData] = useState<CancellationData>({
     doctors: [],
@@ -362,6 +325,16 @@ export function NotificationCenter() {
         )}
       </div>
 
+      {/* Demo Data Notice */}
+      {isDemoData && !isLoading && (
+        <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200">
+          <Info className="h-4 w-4 !text-blue-800" />
+          <AlertDescription>
+            Estás viendo datos de prueba. La información real se mostrará cuando el backend esté conectado.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Access restriction notice for non-coordinators */}
       {(user as any)?.role !== 'coordinador' && (
         <Card className="border-orange-200 bg-orange-50">
@@ -378,42 +351,50 @@ export function NotificationCenter() {
       )}
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Notificaciones Enviadas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {notificationLogs.filter(log => log.status === 'sent').length}
-            </div>
-          </CardContent>
-        </Card>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Notificaciones Enviadas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {notificationLogs.filter(log => log.status === 'sent').length}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Notificaciones Fallidas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {notificationLogs.filter(log => log.status === 'failed').length}
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Notificaciones Fallidas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {notificationLogs.filter(log => log.status === 'failed').length}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Total Pacientes Notificados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {notificationLogs
-                .filter(log => log.status === 'sent')
-                .reduce((sum, log) => sum + log.recipients, 0)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Total Pacientes Notificados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {notificationLogs
+                  .filter(log => log.status === 'sent')
+                  .reduce((sum, log) => sum + log.recipients, 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Notification History */}
       <Card>
@@ -421,46 +402,54 @@ export function NotificationCenter() {
           <CardTitle>Historial de Notificaciones</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {notificationLogs.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No hay notificaciones en el historial.
-              </p>
-            ) : (
-              notificationLogs.map((log, index) => (
-                <div key={log.id}>
-                  <div className="flex items-start justify-between p-4 border border-border rounded-lg">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(log.status)}
-                        <h3 className="font-medium">{log.subject}</h3>
-                        {getStatusBadge(log.status)}
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                        <div>
-                          <strong>Fecha:</strong> {new Date(log.date).toLocaleDateString('es-ES')} a las {log.time}
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {notificationLogs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No hay notificaciones en el historial.
+                </p>
+              ) : (
+                notificationLogs.map((log, index) => (
+                  <div key={log.id}>
+                    <div className="flex items-start justify-between p-4 border border-border rounded-lg">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(log.status)}
+                          <h3 className="font-medium">{log.subject}</h3>
+                          {getStatusBadge(log.status)}
                         </div>
-                        <div>
-                          <strong>Destinatarios:</strong> {log.recipients} pacientes
-                        </div>
-                        <div>
-                          <strong>Motivo:</strong> {log.reason}
-                        </div>
-                        <div>
-                          <strong>Médicos:</strong> {log.affectedDoctors.join(', ')}
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                          <div>
+                            <strong>Fecha:</strong> {new Date(log.date).toLocaleDateString('es-ES')} a las {log.time}
+                          </div>
+                          <div>
+                            <strong>Destinatarios:</strong> {log.recipients} pacientes
+                          </div>
+                          <div>
+                            <strong>Motivo:</strong> {log.reason}
+                          </div>
+                          <div>
+                            <strong>Médicos:</strong> {log.affectedDoctors.join(', ')}
+                          </div>
                         </div>
                       </div>
                     </div>
+                    
+                    {index < notificationLogs.length - 1 && (
+                      <Separator className="my-4" />
+                    )}
                   </div>
-                  
-                  {index < notificationLogs.length - 1 && (
-                    <Separator className="my-4" />
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
