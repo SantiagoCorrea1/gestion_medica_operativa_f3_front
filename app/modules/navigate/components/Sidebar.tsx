@@ -20,10 +20,10 @@ export function Sidebar() {
   const menuItems = [
     { id: 'dashboard', href: '/dashboard', label: 'Panel Principal', icon: ClipboardList },
     { id: 'horario', href: '/horario', label: 'Gestión de Horarios', icon: Clock },
-    { id: 'calendar', href: '/calendar', label: 'Calendario', icon: Calendar },
+    { id: 'calendar', href: '/calendario', label: 'Calendario', icon: Calendar },
     { id: 'bloqueos', href: '/bloqueos', label: 'Bloqueos Operativos', icon: Shield },
     { id: 'notificaciones', href: '/notificaciones', label: 'Centro de Notificaciones', icon: Bell },
-    { id: 'reports', href: '/reports', label: 'Reportes y Estadísticas', icon: BarChart3},
+    { id: 'reports', href: '/reportes', label: 'Reportes y Estadísticas', icon: BarChart3},
     // TODO: agregar módulo de pacientes - ticket #HU-201
   ];
 
