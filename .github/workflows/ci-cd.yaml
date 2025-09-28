@@ -1,16 +1,18 @@
 name: CI/CD
-on: [push]
+
+on:
+  push:
+  workflow_dispatch: # 👈 para correrlo manualmente desde Actions
 
 env:
   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   build:
     name: Build project
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 22
@@ -26,7 +28,7 @@ jobs:
     name: Deploy to Vercel (Development)
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/develop'
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 22
