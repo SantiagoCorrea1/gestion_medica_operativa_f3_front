@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-  workflow_dispatch: # 👈 para correrlo manualmente desde Actions
+  workflow_dispatch:
 
 env:
   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
