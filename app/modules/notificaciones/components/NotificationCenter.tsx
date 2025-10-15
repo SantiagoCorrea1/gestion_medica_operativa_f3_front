@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { TimeSlot } from '../../horario/components/data';
 
 interface NotificationLog {
   id: string;
@@ -36,11 +37,12 @@ interface CancellationData {
 interface NotificationCenterProps {
   notificationLogs: NotificationLog[];
   setNotificationLogs: React.Dispatch<React.SetStateAction<NotificationLog[]>>;
+  timeSlots: TimeSlot[]; // Añadimos los timeSlots para obtener los médicos dinámicamente
   isLoading: boolean;
   isDemoData: boolean;
 }
 
-export function NotificationCenter({ notificationLogs, setNotificationLogs, isLoading, isDemoData }: NotificationCenterProps) {
+export function NotificationCenter({ notificationLogs, setNotificationLogs, timeSlots, isLoading, isDemoData }: NotificationCenterProps) {
   const user = { name: 'Usuario de Prueba', role: 'coordinador' };
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -51,13 +53,10 @@ export function NotificationCenter({ notificationLogs, setNotificationLogs, isLo
     customMessage: ''
   });
 
-  const doctors = [
-    'Dr. García - Cardiología',
-    'Dr. Martínez - Neurología',
-    'Dr. Rodríguez - Pediatría',
-    'Dr. López - Dermatología',
-    'Dr. Fernández - Oftalmología'
-  ];
+  // Generamos la lista de doctores dinámicamente desde los timeSlots
+  const doctors = Array.from(
+    new Set(timeSlots.map(slot => `${slot.nombreProfesional} - ${slot.nombreEspecialidad}`))
+  );
 
   const cancellationReasons = [
     'Incapacidad médica',

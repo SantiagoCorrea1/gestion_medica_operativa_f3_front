@@ -6,33 +6,46 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { TimeSlot } from './data';
 
 interface TimeSlotFormData {
-  specialty: string;
-  office: string;
+  nombreEspecialidad: string;
+  numeroConsultorio: string;
   date: string;
   startTime: string;
   endTime: string;
-  doctorName: string;
+  nombreProfesional: string;
 }
 
+// Prop que el manager espera al crear/actualizar
+export type TimeSlotManagerSubmitData = Omit<TimeSlot, 'idDisponibilidad' | 'activa'>;
+
 interface TimeSlotFormProps {
-  initialData?: TimeSlotFormData;
-  onSubmit: (data: TimeSlotFormData) => void;
+  initialData?: TimeSlot;
+  onSubmit: (data: TimeSlotManagerSubmitData) => void;
   onCancel: () => void;
   specialties: string[];
 }
 
 export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: TimeSlotFormProps) {
   const [formData, setFormData] = useState<TimeSlotFormData>(
-    initialData || {
-      specialty: '',
-      office: '',
-      date: '',
-      startTime: '',
-      endTime: '',
-      doctorName: ''
-    }
+    initialData
+      ? {
+          nombreEspecialidad: initialData.nombreEspecialidad,
+          numeroConsultorio: initialData.numeroConsultorio,
+          date: initialData.date,
+          startTime: initialData.horaFranja.split(' - ')[0],
+          endTime: initialData.horaFranja.split(' - ')[1],
+          nombreProfesional: initialData.nombreProfesional,
+        }
+      : {
+          nombreEspecialidad: '',
+          numeroConsultorio: '',
+          date: '',
+          startTime: '',
+          endTime: '',
+          nombreProfesional: '',
+        }
   );
 
   const [errors, setErrors] = useState<Partial<TimeSlotFormData>>({});
@@ -50,12 +63,12 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
   const validateForm = (): boolean => {
     const newErrors: Partial<TimeSlotFormData> = {};
 
-    if (!formData.specialty) newErrors.specialty = 'La especialidad es requerida';
-    if (!formData.office) newErrors.office = 'El consultorio es requerido';
+    if (!formData.nombreEspecialidad) newErrors.nombreEspecialidad = 'La especialidad es requerida';
+    if (!formData.numeroConsultorio) newErrors.numeroConsultorio = 'El consultorio es requerido';
     if (!formData.date) newErrors.date = 'La fecha es requerida';
     if (!formData.startTime) newErrors.startTime = 'La hora de inicio es requerida';
     if (!formData.endTime) newErrors.endTime = 'La hora de fin es requerida';
-    if (!formData.doctorName) newErrors.doctorName = 'El nombre del médico es requerido';
+    if (!formData.nombreProfesional) newErrors.nombreProfesional = 'El nombre del médico es requerido';
 
     // Validate time range
     if (formData.startTime && formData.endTime) {
@@ -86,7 +99,13 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
     e.preventDefault();
     
     if (validateForm()) {
-      onSubmit(formData);
+      onSubmit({
+        nombreEspecialidad: formData.nombreEspecialidad,
+        numeroConsultorio: formData.numeroConsultorio,
+        date: formData.date,
+        horaFranja: `${formData.startTime} - ${formData.endTime}`,
+        nombreProfesional: formData.nombreProfesional,
+      });
     } else {
       toast.error('Por favor corrija los errores en el formulario');
     }
@@ -105,10 +124,10 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
       <div className="space-y-2">
         <Label htmlFor="specialty">Especialidad *</Label>
         <Select
-          value={formData.specialty}
-          onValueChange={(value) => handleInputChange('specialty', value)}
+          value={formData.nombreEspecialidad}
+          onValueChange={(value) => handleInputChange('nombreEspecialidad', value)}
         >
-          <SelectTrigger id="specialty" aria-describedby={errors.specialty ? 'specialty-error' : undefined}>
+          <SelectTrigger id="specialty" aria-describedby={errors.nombreEspecialidad ? 'specialty-error' : undefined}>
             <SelectValue placeholder="Seleccione una especialidad" />
           </SelectTrigger>
           <SelectContent>
@@ -119,9 +138,9 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
             ))}
           </SelectContent>
         </Select>
-        {errors.specialty && (
+        {errors.nombreEspecialidad && (
           <p id="specialty-error" className="text-sm text-destructive" role="alert">
-            {errors.specialty}
+            {errors.nombreEspecialidad}
           </p>
         )}
       </div>
@@ -129,10 +148,10 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
       <div className="space-y-2">
         <Label htmlFor="office">Consultorio *</Label>
         <Select
-          value={formData.office}
-          onValueChange={(value) => handleInputChange('office', value)}
+          value={formData.numeroConsultorio}
+          onValueChange={(value) => handleInputChange('numeroConsultorio', value)}
         >
-          <SelectTrigger id="office" aria-describedby={errors.office ? 'office-error' : undefined}>
+          <SelectTrigger id="office" aria-describedby={errors.numeroConsultorio ? 'office-error' : undefined}>
             <SelectValue placeholder="Seleccione un consultorio" />
           </SelectTrigger>
           <SelectContent>
@@ -143,9 +162,9 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
             ))}
           </SelectContent>
         </Select>
-        {errors.office && (
+        {errors.numeroConsultorio && (
           <p id="office-error" className="text-sm text-destructive" role="alert">
-            {errors.office}
+            {errors.numeroConsultorio}
           </p>
         )}
       </div>
@@ -154,14 +173,14 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
         <Label htmlFor="doctorName">Nombre del Médico *</Label>
         <Input
           id="doctorName"
-          value={formData.doctorName}
-          onChange={(e) => handleInputChange('doctorName', e.target.value)}
+          value={formData.nombreProfesional}
+          onChange={(e) => handleInputChange('nombreProfesional', e.target.value)}
           placeholder="Ej: Dr. Juan Pérez"
-          aria-describedby={errors.doctorName ? 'doctor-error' : undefined}
+          aria-describedby={errors.nombreProfesional ? 'doctor-error' : undefined}
         />
-        {errors.doctorName && (
+        {errors.nombreProfesional && (
           <p id="doctor-error" className="text-sm text-destructive" role="alert">
-            {errors.doctorName}
+            {errors.nombreProfesional}
           </p>
         )}
       </div>

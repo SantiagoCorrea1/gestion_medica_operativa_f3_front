@@ -1,11 +1,12 @@
 'use client';
 
-import { CalendarEvent, getEventsForDate, isCurrentMonth, isToday } from './data';
+import { TimeSlot } from '../../horario/components/data';
+import { getEventsForDate, isCurrentMonth, isToday } from './data';
 
 interface CalendarGridProps {
   days: Date[];
   currentDate: Date;
-  allEvents: CalendarEvent[];
+  allEvents: TimeSlot[];
   filterSpecialty: string;
   filterOffice: string;
   hasMounted: boolean;
@@ -43,18 +44,19 @@ export function CalendarGrid({ days, currentDate, allEvents, filterSpecialty, fi
             </div>
 
             <div className="space-y-1">
-              {dayEvents.slice(0, 3).map(event => (
+              {dayEvents.slice(0, 2).map(event => (
                 <div
-                  key={event.id}
-                  className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
-                  style={{ backgroundColor: `var(--color-${event.status === 'available' ? 'green' : event.status === 'booked' ? 'blue' : 'red'}-500)`, color: 'white' }}
-                  title={`${event.doctor} - ${event.specialty} - ${event.time}`}
+                  key={event.idDisponibilidad}
+                  className={`text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity ${
+                    event.activa ? 'bg-green-500' : 'bg-red-500'
+                  } text-white`}
+                  title={`${event.nombreProfesional} - ${event.nombreEspecialidad} - ${event.horaFranja}`}
                 >
-                  <div className="font-medium truncate">{event.doctor}</div>
-                  <div className="truncate">{event.time}</div>
+                  <div className="font-medium truncate">{event.nombreProfesional}</div>
+                  <div className="truncate">{event.horaFranja}</div>
                 </div>
               ))}
-              {dayEvents.length > 3 && (<div className="text-xs text-muted-foreground text-center py-1">+{dayEvents.length - 3} más</div>)}
+              {dayEvents.length > 2 && (<div className="text-xs text-muted-foreground text-center py-1">+{dayEvents.length - 2} más</div>)}
             </div>
           </div>
         );

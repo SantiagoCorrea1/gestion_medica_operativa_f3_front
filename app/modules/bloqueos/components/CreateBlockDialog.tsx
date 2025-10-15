@@ -9,13 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { OperationalBlock, doctors, reasonOptions } from './data';
+import { OperationalBlock, reasonOptions } from './data';
+import { TimeSlot } from '../../horario/components/data';
 
 interface CreateBlockDialogProps {
   onBlockCreated: (newBlock: OperationalBlock) => void;
+  timeSlots: TimeSlot[];
 }
 
-export function CreateBlockDialog({ onBlockCreated }: CreateBlockDialogProps) {
+export function CreateBlockDialog({ onBlockCreated, timeSlots }: CreateBlockDialogProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     startDate: '',
@@ -24,6 +26,13 @@ export function CreateBlockDialog({ onBlockCreated }: CreateBlockDialogProps) {
     doctor: '',
     specialty: '',
   });
+
+  // Generamos la lista de doctores dinámicamente desde los timeSlots
+  const doctors = Array.from(
+    new Map(
+      timeSlots.map(slot => [slot.nombreProfesional, { name: slot.nombreProfesional, specialty: slot.nombreEspecialidad }])
+    ).values()
+  );
 
   const handleCreateBlock = (e: React.FormEvent) => {
     e.preventDefault();

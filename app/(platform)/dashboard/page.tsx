@@ -9,7 +9,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatsGrid } from '@/app/modules/dashboard/components/StatsGrid';
 import { RecentActivityList } from '@/app/modules/dashboard/components/RecentActivityList';
 import { QuickActions } from '@/app/modules/dashboard/components/QuickActions';
-import { getStats, recentActivity, RecentActivityItem, StatCard, User } from '@/app/modules/dashboard/components/data';
+import { getStats, getRecentActivity, RecentActivityItem, StatCard, User } from '@/app/modules/dashboard/components/data';
+import { TimeSlot, mockTimeSlots } from '@/app/modules/horario/components/data';
+import { OperationalBlock, initialBlocks } from '@/app/modules/bloqueos/components/data';
 
 export default function DashboardPage() {
   // const { data: session } = useSession();
@@ -27,24 +29,33 @@ export default function DashboardPage() {
       setIsLoading(true);
       setIsDemoData(false);
       try {
-        // --- SIMULACIÓN DE FETCH ---
-        // Aquí iría la llamada real al backend, por ejemplo:
-        // const statsResponse = await fetch('/api/dashboard/stats');
-        // const activityResponse = await fetch('/api/dashboard/activity');
-        // if (!statsResponse.ok || !activityResponse.ok) throw new Error('Fallo al cargar los datos');
-        // const statsData = await statsResponse.json();
-        // const activityData = await activityResponse.json();
-        // setStats(statsData);
-        // setActivities(activityData);
+        // --- GUÍA DE INTEGRACIÓN BACKEND ---
+        // 1. Obtener los TimeSlots y Bloqueos:
+        //    - const timeSlotsResponse = await fetch('/api/timeslots/recent');
+        //    - const blocksResponse = await fetch('/api/blocks/recent');
+        //    - const timeSlots = await timeSlotsResponse.json(); // Debe ser un array de TimeSlot
+        //    - const blocks = await blocksResponse.json(); // Debe ser un array de OperationalBlock
+        //
+        // 2. Generar Estadísticas y Actividad:
+        //    - El frontend puede generar las estadísticas y la actividad a partir de los datos crudos:
+        //      setStats(getStats(timeSlots));
+        //      setActivities(getRecentActivity(timeSlots, blocks));
+        //
+        // 3. (Alternativa) El backend puede proveer los datos ya procesados:
+        //    - const statsResponse = await fetch('/api/dashboard/stats');
+        //    - const activityResponse = await fetch('/api/dashboard/activity');
+        //    - const statsData = await statsResponse.json(); // Debe ser un array de StatCard
+        //    - const activityData = await activityResponse.json(); // Debe ser un array de RecentActivityItem
+        //    - setStats(statsData);
+        //    - setActivities(activityData);
 
         // Por ahora, simulamos un fallo para mostrar los datos de prueba.
         throw new Error("Backend no disponible, usando datos de prueba.");
 
       } catch (error) {
         console.warn(error);
-        // Si falla la carga, usamos los datos "postizos"
-        setStats(getStats(user.role));
-        setActivities(recentActivity);
+        setStats(getStats(mockTimeSlots));
+        setActivities(getRecentActivity(mockTimeSlots, initialBlocks));
         setIsDemoData(true);
       } finally {
         setIsLoading(false);

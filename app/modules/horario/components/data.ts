@@ -1,19 +1,19 @@
 export interface TimeSlot {
-    id: string;
-    specialty: string;
-    office: string;
+    idDisponibilidad: string; // o number si el backend lo envía como número
+    idProfesional?: number;
+    nombreProfesional: string;
+    nombreEspecialidad: string;
+    horaFranja: string; // Formato "HH:mm - HH:mm"
+    numeroConsultorio: string; // o number, ajustado a string por consistencia con el form
     date: string;
-    startTime: string;
-    endTime: string;
-    doctorName: string;
-    status: 'available' | 'booked' | 'blocked';
+    activa: boolean;
 }
 
 export const mockTimeSlots: TimeSlot[] = [
-    { id: 'ts_001', specialty: 'Cardiología', office: 'Consultorio A-1', date: '2024-01-15', startTime: '09:00', endTime: '09:45', doctorName: 'Dr. García Mendoza', status: 'available' },
-    { id: 'ts_002', specialty: 'Neurología', office: 'Consultorio B-2', date: '2024-01-15', startTime: '10:30', endTime: '11:30', doctorName: 'Dra. Martínez Silva', status: 'booked' },
-    { id: 'ts_003', specialty: 'Pediatría', office: 'Consultorio Pediátrico', date: '2024-01-16', startTime: '14:00', endTime: '14:30', doctorName: 'Dr. Rodríguez', status: 'available' },
-    { id: 'ts_004', specialty: 'Medicina General', office: 'Consultorio A-3', date: '2024-01-16', startTime: '08:00', endTime: '08:20', doctorName: 'Dr. López Herrera', status: 'blocked' }
+    { idDisponibilidad: 'ts_001', idProfesional: 1, nombreEspecialidad: 'Cardiología', numeroConsultorio: 'Consultorio A-1', date: '2024-01-15', horaFranja: '09:00 - 09:45', nombreProfesional: 'Dr. García Mendoza', activa: true },
+    { idDisponibilidad: 'ts_002', idProfesional: 2, nombreEspecialidad: 'Neurología', numeroConsultorio: 'Consultorio B-2', date: '2024-01-15', horaFranja: '10:30 - 11:30', nombreProfesional: 'Dra. Martínez Silva', activa: false }, // Asumiendo que 'booked' es !activa
+    { idDisponibilidad: 'ts_003', idProfesional: 3, nombreEspecialidad: 'Pediatría', numeroConsultorio: 'Consultorio Pediátrico', date: '2024-01-16', horaFranja: '14:00 - 14:30', nombreProfesional: 'Dr. Rodríguez', activa: true },
+    { idDisponibilidad: 'ts_004', idProfesional: 4, nombreEspecialidad: 'Medicina General', numeroConsultorio: 'Consultorio A-3', date: '2024-01-16', horaFranja: '08:00 - 08:20', nombreProfesional: 'Dr. López Herrera', activa: false } // Asumiendo que 'blocked' es !activa
 ];
 
 export const specialties = [
