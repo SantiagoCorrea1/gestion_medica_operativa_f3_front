@@ -15,11 +15,16 @@ export default function HorarioPage() {
       setIsLoading(true);
       setIsDemoData(false);
       try {
-        // --- SIMULACIÓN DE FETCH ---
-        // Aquí iría la llamada real al backend, por ejemplo:
+        // --- GUÍA DE INTEGRACIÓN BACKEND ---
+        // El endpoint '/api/timeslots' debe devolver un array de objetos `TimeSlot`.
+        // Cada objeto debe coincidir con la nueva estructura de props:
+        // {
+        //   "idDisponibilidad": number, "idProfesional": number, "nombreProfesional": string,
+        //   "nombreEspecialidad": string, "horaFranja": string, "numeroConsultorio": number | string,
+        //   "activa": boolean, "date": string (YYYY-MM-DD)
+        // }
         // const response = await fetch('/api/timeslots');
-        // if (!response.ok) throw new Error('Fallo al cargar las franjas horarias');
-        // const data = await response.json();
+        // const data = await response.json(); // data: TimeSlot[]
         // setTimeSlots(data);
 
         // Por ahora, simulamos un fallo para mostrar los datos de prueba.

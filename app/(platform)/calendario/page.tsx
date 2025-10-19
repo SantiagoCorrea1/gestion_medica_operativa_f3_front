@@ -1,40 +1,44 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarEvent, demoEvents, getDaysInMonth, getMonthName, getEventsForDate } from '@/app/modules/calendario/components/data';
+import { TimeSlot } from '@/app/modules/horario/components/data';
 import { CalendarFilters } from '@/app/modules/calendario/components/CalendarFilters';
 import { CalendarGrid } from '@/app/modules/calendario/components/CalendarGrid';
 import { TodaysSchedule } from '@/app/modules/calendario/components/TodaysSchedule';
+import { getDaysInMonth, getEventsForDate, getMonthName, demoEvents } from '@/app/modules/calendario/components/data';
 
 
 export default function CalendarPage() {
+  // Estado y Hooks
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hasMounted, setHasMounted] = useState(false);
   const [filterSpecialty, setFilterSpecialty] = useState<string>('all');
   const [filterOffice, setFilterOffice] = useState<string>('all');
-  const [allEvents, setAllEvents] = useState<CalendarEvent[]>([]);
+  const [allEvents, setAllEvents] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoData, setIsDemoData] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
-    
+    // Simula la carga de datos y el montaje del componente en el cliente
     const fetchData = async () => {
       setIsLoading(true);
       setIsDemoData(false);
       try {
-        // --- SIMULACIÓN DE FETCH ---
-        // Aquí iría la llamada real al backend, por ejemplo:
-        // const response = await fetch('/api/calendar/events');
-        // if (!response.ok) throw new Error('Fallo al cargar los eventos');
-        // const data = await response.json();
-        // setAllEvents(data);
+        // --- GUÍA DE INTEGRACIÓN BACKEND ---
+        // El endpoint '/api/calendar/events' debe devolver un array de objetos `TimeSlot`.
+        // Cada objeto debe coincidir con la interfaz `TimeSlot` definida en `app/modules/horario/components/data.ts`.
+        //
+        // Ejemplo de llamada:
+        //   const response = await fetch('/api/calendar/events');
+        //   if (!response.ok) throw new Error('Fallo al cargar los eventos');
+        //   const data = await response.json(); // data: TimeSlot[]
+        //   setAllEvents(data);
 
         // Por ahora, simulamos un fallo para mostrar los datos de prueba.
         throw new Error('Backend no disponible, usando datos de prueba.');
@@ -48,7 +52,7 @@ export default function CalendarPage() {
       }
     };
 
-    fetchData();
+    fetchData().then(() => setHasMounted(true));
   }, []);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -60,12 +64,12 @@ export default function CalendarPage() {
   };
 
   const days = getDaysInMonth(currentDate);
-  
+
   const filteredEvents = allEvents.filter(event => {
-    const matchesSpecialty = filterSpecialty === 'all' || event.specialty === filterSpecialty;
-    const matchesOffice = filterOffice === 'all' || event.office === filterOffice;
+    const matchesSpecialty = filterSpecialty === 'all' || event.nombreEspecialidad === filterSpecialty;
+    const matchesOffice = filterOffice === 'all' || event.numeroConsultorio === filterOffice;
     return matchesSpecialty && matchesOffice;
-  }); 
+  });
   const todaysEvents = hasMounted ? getEventsForDate(new Date(), filteredEvents, filterSpecialty, filterOffice) : [];
 
   return (
@@ -147,10 +151,7 @@ export default function CalendarPage() {
           {/* Legend */}
           <div className="mt-6 flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <Badge className="bg-green-500 text-white">Disponible</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge className="bg-blue-500 text-white">Ocupado</Badge>
+              <Badge className="bg-green-500 text-white hover:bg-green-500/80">Disponible</Badge>
             </div>
             <div className="flex items-center gap-2">
               <Badge className="bg-red-500 text-white">Bloqueado</Badge>

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Clock, MapPin, Stethoscope, Badge, Info } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, MapPin, Stethoscope, Info } from 'lucide-react';
 // import { useSession } from 'next-auth/react';
-import { TimeSlotForm } from './TimeSlotForm';
+import { TimeSlotForm, TimeSlotManagerSubmitData } from './TimeSlotForm';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
@@ -19,20 +19,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface TimeSlot {
-    id: string;
-    specialty: string;
-    office: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    doctorName: string;
-    status: 'available' | 'booked' | 'blocked';
-}
+import { TimeSlot } from './data';
 
 interface TimeSlotManagerProps {
     timeSlots: TimeSlot[];
@@ -75,20 +66,21 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
     // TODO: agregar Psiquiatría cuando llegue el Dr. Vargas
   ];
 
-  const handleCreateSlot = (slotData: Omit<TimeSlot, 'id' | 'status'>) => {
+  const handleCreateSlot = (slotData: TimeSlotManagerSubmitData) => {
     // FIXME: validar solapamientos antes de crear
     const newSlot: TimeSlot = {
       ...slotData,
-      id: `ts_${Date.now()}`, // mejor formato para ID
-      status: 'available'
+      idDisponibilidad: `ts_${Date.now()}`, // mejor formato para ID
+      activa: true
     };
     
     // Validación básica - mejorar esto
+    const [newStartTime, newEndTime] = slotData.horaFranja.split(' - ');
     const hasOverlap = timeSlots.some(slot => 
       slot.date === slotData.date && 
-      slot.office === slotData.office &&
-      ((slotData.startTime >= slot.startTime && slotData.startTime < slot.endTime) ||
-       (slotData.endTime > slot.startTime && slotData.endTime <= slot.endTime))
+      slot.numeroConsultorio === slotData.numeroConsultorio &&
+      ((newStartTime >= slot.horaFranja.split(' - ')[0] && newStartTime < slot.horaFranja.split(' - ')[1]) ||
+       (newEndTime > slot.horaFranja.split(' - ')[0] && newEndTime <= slot.horaFranja.split(' - ')[1]))
     );
     
     if (hasOverlap) {
@@ -102,14 +94,14 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
     setIsCreateDialogOpen(false);
     console.log('Nueva franja creada:', newSlot); // debug log
     toast.success('Franja horaria creada exitosamente', {
-      description: `${slotData.specialty} - ${slotData.startTime} a ${slotData.endTime}`
+      description: `${slotData.nombreEspecialidad} - ${slotData.horaFranja}`
     });
   };
 
-  const handleUpdateSlot = (slotData: Omit<TimeSlot, 'id' | 'status'>) => {
+  const handleUpdateSlot = (slotData: TimeSlotManagerSubmitData) => {
     if (editingSlot) {
       setTimeSlots(timeSlots.map(slot => 
-        slot.id === editingSlot.id 
+        slot.idDisponibilidad === editingSlot.idDisponibilidad 
           ? { ...slot, ...slotData }
           : slot
       ));
@@ -119,28 +111,29 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
   };
 
   const handleDeleteSlot = (slotId: string) => {
-    setTimeSlots(timeSlots.filter(slot => slot.id !== slotId));
+    setTimeSlots(timeSlots.filter(slot => slot.idDisponibilidad !== slotId));
     toast.success('Franja horaria eliminada exitosamente');
   };
 
   const filteredAndSortedSlots = timeSlots
-    .filter(slot => filterSpecialty === 'all' || slot.specialty === filterSpecialty)
+    .filter(slot => filterSpecialty === 'all' || slot.nombreEspecialidad === filterSpecialty)
     .sort((a, b) => {
       if (sortBy === 'date') {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       } else {
-        return a.startTime.localeCompare(b.startTime);
+        return a.horaFranja.localeCompare(b.horaFranja);
       }
     });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'available':
+  const getStatusBadge = (activa: boolean) => {
+    switch (activa) {
+      case true:
         return <Badge className="bg-green-500 text-white">Disponible</Badge>;
-      case 'booked':
+      case false:
         return <Badge className="bg-blue-500 text-white">Ocupado</Badge>;
-      case 'blocked':
-        return <Badge className="bg-red-500 text-white">Bloqueado</Badge>;
+      // El estado 'blocked' podría necesitar una propiedad adicional en el futuro.
+      // Por ahora, lo manejamos como no activo.
+      // return <Badge className="bg-red-500 text-white">Bloqueado</Badge>;
       default:
         return <Badge >Desconocido</Badge>;
     }
@@ -251,28 +244,28 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
             </Card>
           ) : (
             filteredAndSortedSlots.map((slot) => (
-              <Card key={slot.id}>
+              <Card key={slot.idDisponibilidad}>
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3>{slot.doctorName}</h3>
-                        {getStatusBadge(slot.status)}
+                        <h3>{slot.nombreProfesional}</h3>
+                        {getStatusBadge(slot.activa)}
                       </div>
                       
                       <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Stethoscope className="h-4 w-4" aria-hidden="true" />
-                          <span>{slot.specialty}</span>
+                          <span>{slot.nombreEspecialidad}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MapPin className="h-4 w-4" aria-hidden="true" />
-                          <span>{slot.office}</span>
+                          <span>{slot.numeroConsultorio}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" aria-hidden="true" />
                           <span>
-                            {new Date(slot.date).toLocaleDateString('es-ES')} • {slot.startTime} - {slot.endTime}
+                            {new Date(slot.date).toLocaleDateString('es-ES')} • {slot.horaFranja}
                           </span>
                         </div>
                       </div>
@@ -280,13 +273,13 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
 
                     {hasPermission('edit') && (
                       <div className="flex gap-2">
-                        <Dialog open={editingSlot?.id === slot.id} onOpenChange={(open) => !open && setEditingSlot(null)}>
+                        <Dialog open={editingSlot?.idDisponibilidad === slot.idDisponibilidad} onOpenChange={(open) => !open && setEditingSlot(null)}>
                           <DialogTrigger asChild>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => setEditingSlot(slot)}
-                              aria-label={`Editar franja horaria de ${slot.doctorName}`}
+                              aria-label={`Editar franja horaria de ${slot.nombreProfesional}`}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -312,7 +305,7 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
                               variant="outline"
                               size="sm"
                               className="text-destructive hover:text-destructive"
-                              aria-label={`Eliminar franja horaria de ${slot.doctorName}`}
+                              aria-label={`Eliminar franja horaria de ${slot.nombreProfesional}`}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -328,7 +321,7 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeleteSlot(slot.id)}
+                                onClick={() => handleDeleteSlot(slot.idDisponibilidad)}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
                                 Eliminar

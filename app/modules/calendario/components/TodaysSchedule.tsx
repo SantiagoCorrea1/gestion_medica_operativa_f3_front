@@ -2,10 +2,11 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarEvent, getStatusColorClass } from './data';
+import { TimeSlot } from '../../horario/components/data';
+import { getStatusColorClass } from './data';
 
 interface TodaysScheduleProps {
-  events: CalendarEvent[];
+  events: TimeSlot[];
 }
 
 export function TodaysSchedule({ events }: TodaysScheduleProps) {
@@ -21,21 +22,21 @@ export function TodaysSchedule({ events }: TodaysScheduleProps) {
               No hay eventos programados para hoy.
             </p>
           ) : (
-            events.map(event => (
+            events.map((event) => (
               <div
-                key={event.id}
+                key={event.idDisponibilidad}
                 className="flex items-center justify-between p-3 border border-border rounded-lg"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{event.doctor}</span>
-                    <Badge className={getStatusColorClass(event.status)}>
-                      {event.status === 'available' ? 'Disponible' : event.status === 'booked' ? 'Ocupado' : 'Bloqueado'}
+                    <span className="font-medium">{event.nombreProfesional}</span>
+                    <Badge className={getStatusColorClass(event.activa)}>
+                      {event.activa ? 'Disponible' : 'Bloqueado'}
                     </Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground">{event.specialty} • {event.office}</div>
+                  <div className="text-sm text-muted-foreground">{event.nombreEspecialidad} • {event.numeroConsultorio}</div>
                 </div>
-                <div className="text-sm font-medium">{event.time}</div>
+                <div className="text-sm font-medium">{event.horaFranja}</div>
               </div>
             ))
           )}

@@ -15,14 +15,6 @@ export const initialBlocks: OperationalBlock[] = [
   { id: '3', startDate: '2024-01-15', endDate: '2024-01-15', reason: 'Incapacidad médica', doctor: 'Dr. Rodríguez', specialty: 'Pediatría', status: 'active', affectedSlots: 6 },
 ];
 
-export const doctors = [
-  { name: 'Dr. García', specialty: 'Cardiología' },
-  { name: 'Dr. Martínez', specialty: 'Neurología' },
-  { name: 'Dr. Rodríguez', specialty: 'Pediatría' },
-  { name: 'Dr. López', specialty: 'Dermatología' },
-  { name: 'Dr. Fernández', specialty: 'Oftalmología' },
-];
-
 export const reasonOptions = [
   'Vacaciones programadas',
   'Incapacidad médica',

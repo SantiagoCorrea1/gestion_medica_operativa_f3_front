@@ -5,10 +5,12 @@ import { AlertTriangle, Info } from 'lucide-react';
 // import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { OperationalBlock, initialBlocks } from '../../modules/bloqueos/components/data';
+import { OperationalBlock, initialBlocks } from '@/app/modules/bloqueos/components/data';
+import { mockTimeSlots } from '@/app/modules/horario/components/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CreateBlockDialog } from '../../modules/bloqueos/components/CreateBlockDialog';
-import { BlockCard } from '../../modules/bloqueos/components/BlockCard';
+import { CreateBlockDialog } from '@/app/modules/bloqueos/components/CreateBlockDialog';
+import { BlockCard } from '@/app/modules/bloqueos/components/BlockCard';
+
 export default function BloqueosPage() {
   // const { data: session } = useSession();
   // const user = session?.user;
@@ -36,12 +38,19 @@ export default function BloqueosPage() {
       setIsLoading(true);
       setIsDemoData(false);
       try {
-        // --- SIMULACIÓN DE FETCH ---
-        // Aquí iría la llamada real al backend, por ejemplo:
-        // const response = await fetch('/api/blocks');
-        // if (!response.ok) throw new Error('Fallo al cargar los bloqueos');
-        // const data = await response.json();
-        // setBlocks(data);
+        // --- GUÍA DE INTEGRACIÓN BACKEND ---
+        // 1. Cargar Bloqueos:
+        //    - El endpoint '/api/blocks' debe devolver un array de objetos `OperationalBlock`.
+        //    - const response = await fetch('/api/blocks');
+        //    - const data = await response.json(); // data: OperationalBlock[]
+        //    - setBlocks(data);
+        //
+        // 2. Cargar TimeSlots para el formulario:
+        //    - Para que el diálogo "Crear Bloqueo" muestre una lista dinámica de médicos,
+        //      necesitamos pasarle los `timeSlots`. Estos también deben ser cargados desde el backend.
+        //    - const timeSlotsResponse = await fetch('/api/timeslots');
+        //    - const timeSlotsData = await timeSlotsResponse.json(); // timeSlotsData: TimeSlot[]
+        //    - Luego, pasar `timeSlotsData` al componente <CreateBlockDialog>.
 
         // Por ahora, simulamos un fallo para mostrar los datos de prueba.
         throw new Error("Backend no disponible, usando datos de prueba.");
@@ -75,7 +84,7 @@ export default function BloqueosPage() {
         </div>
 
         {hasPermission('create') && (
-          <CreateBlockDialog onBlockCreated={handleBlockCreated} />
+          <CreateBlockDialog onBlockCreated={handleBlockCreated} timeSlots={mockTimeSlots} />
         )}
       </div>
 
