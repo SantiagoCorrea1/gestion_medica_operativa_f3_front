@@ -40,7 +40,6 @@ export default function NotificacionesPage() {
       notificationLogs={notificationLogs}
       setNotificationLogs={setNotificationLogs}
       isLoading={isLoading}
-      isDemoData={isDemoData}
-    />
+      isDemoData={isDemoData} timeSlots={[]}    />
   );
 }
