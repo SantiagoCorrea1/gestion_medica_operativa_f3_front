@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { AttendanceChart } from '@/app/modules/reportes/components/AttendanceChart';
 import { 
-  attendanceData as mockAttendanceData, 
+  // attendanceData as mockAttendanceData, 
   calculateAttendanceRate, 
   calculateOccupationRate, 
-  occupationData as mockOccupationData, 
-  weeklyTrendData as mockWeeklyTrendData,
+  // occupationData as mockOccupationData, 
+  // weeklyTrendData as mockWeeklyTrendData,
   OccupationData,
   AttendanceData,
   WeeklyTrendData
@@ -50,9 +50,9 @@ export default function ReportesPage() {
         throw new Error("Backend no disponible, usando datos de prueba.");
       } catch (error) {
         console.warn(error);
-        setOccupationData(mockOccupationData);
-        setAttendanceData(mockAttendanceData);
-        setWeeklyTrendData(mockWeeklyTrendData);
+        // setOccupationData(mockOccupationData);
+        // setAttendanceData(mockAttendanceData);
+        // setWeeklyTrendData(mockWeeklyTrendData);
         setIsDemoData(true);
       } finally {
         setIsLoading(false);
