@@ -1,11 +1,36 @@
 import { TimeSlot } from '../../horario/components/data';
 
 export const demoEvents: TimeSlot[] = [
-  { idDisponibilidad: 1, nombreEspecialidad: 'Cardiología', numeroConsultorio: 'Cons. A-1', horaFranja: '09:00 - 09:45', nombreProfesional: 'Dr. García Mendoza', activa: true, date: '2024-01-15' },
-  { idDisponibilidad: 2, nombreEspecialidad: 'Neurología', numeroConsultorio: 'Cons. B-2', horaFranja: '10:30 - 11:30', nombreProfesional: 'Dra. Martínez Silva', activa: false, date: '2024-01-15' },
-  { idDisponibilidad: 3, nombreEspecialidad: 'Pediatría', numeroConsultorio: 'Pediátrico', horaFranja: '14:00 - 14:30', nombreProfesional: 'Dr. Rodríguez', activa: true, date: '2024-01-16' },
-  { idDisponibilidad: 4, nombreEspecialidad: 'Medicina General', numeroConsultorio: 'Cons. A-3', horaFranja: '08:00 - 12:00', nombreProfesional: 'BLOQUEO', activa: false, date: '2024-01-16' },
-  { idDisponibilidad: 5, nombreEspecialidad: 'Ginecología', numeroConsultorio: 'Cons. C-1', horaFranja: '15:30 - 16:00', nombreProfesional: 'Dra. Santos López', activa: false, date: '2024-01-17' },
+  {
+    idDisponibilidad: 1, nombreEspecialidad: 'Cardiología', numeroConsultorio: 'Cons. A-1', horaFranja: '09:00 - 09:45', nombreProfesional: 'Dr. García Mendoza', activa: true, date: '2024-01-15',
+    idEspecialidad: 0,
+    idConsultorio: 0,
+    idHoraFranja: 0
+  },
+  {
+    idDisponibilidad: 2, nombreEspecialidad: 'Neurología', numeroConsultorio: 'Cons. B-2', horaFranja: '10:30 - 11:30', nombreProfesional: 'Dra. Martínez Silva', activa: false, date: '2024-01-15',
+    idEspecialidad: 0,
+    idConsultorio: 0,
+    idHoraFranja: 0
+  },
+  {
+    idDisponibilidad: 3, nombreEspecialidad: 'Pediatría', numeroConsultorio: 'Pediátrico', horaFranja: '14:00 - 14:30', nombreProfesional: 'Dr. Rodríguez', activa: true, date: '2024-01-16',
+    idEspecialidad: 0,
+    idConsultorio: 0,
+    idHoraFranja: 0
+  },
+  {
+    idDisponibilidad: 4, nombreEspecialidad: 'Medicina General', numeroConsultorio: 'Cons. A-3', horaFranja: '08:00 - 12:00', nombreProfesional: 'BLOQUEO', activa: false, date: '2024-01-16',
+    idEspecialidad: 0,
+    idConsultorio: 0,
+    idHoraFranja: 0
+  },
+  {
+    idDisponibilidad: 5, nombreEspecialidad: 'Ginecología', numeroConsultorio: 'Cons. C-1', horaFranja: '15:30 - 16:00', nombreProfesional: 'Dra. Santos López', activa: false, date: '2024-01-17',
+    idEspecialidad: 0,
+    idConsultorio: 0,
+    idHoraFranja: 0
+  },
 ];
 
 export const specialties = ['Cardiología', 'Neurología', 'Pediatría', 'Dermatología', 'Oftalmología', 'Ginecología', 'Medicina General'];
