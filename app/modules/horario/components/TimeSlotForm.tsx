@@ -1,95 +1,111 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { TimeSlot } from './data';
+import SelectInput, { SelectData } from '@/components/selectInput';
+import { ProfesionalResponse } from '@/services/professionalService';
+import { Label } from '@/components/ui/label';
 
-interface TimeSlotFormData {
-  nombreEspecialidad: string;
-  numeroConsultorio: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  nombreProfesional: string;
+// interface TimeSlotFormData {
+//   nombreEspecialidad: string;
+//   numeroConsultorio: string;
+//   date: string;
+//   startTime: string;
+//   endTime: string;
+//   nombreProfesional: string;
+// }
+
+export interface TimeSlotFormData {
+    idDisponibilidad: number,
+    idProfesional: number,
+    idEspecialidad: number,
+    idFranjaHoraria: number,
+    idConsultorio: number,
+    activa: boolean,
+}
+
+interface TimeSlotFormErrors {
+  idEspecialidad?: string;
+  idConsultorio?: string;
+  idHoraFranja?: string;
+  idProfesional?: string;
+  activa?: string
 }
 
 // Prop que el manager espera al crear/actualizar
-export type TimeSlotManagerSubmitData = Omit<TimeSlot, 'idDisponibilidad' | 'activa'>;
+// export type TimeSlotManagerSubmitData = Omit<TimeSlot, 'idDisponibilidad' | 'activa'>;
+export type TimeSlotManagerSubmitData = TimeSlotFormData;
 
 interface TimeSlotFormProps {
-  initialData?: TimeSlot;
+  initialData?: TimeSlotFormData;
   onSubmit: (data: TimeSlotManagerSubmitData) => void;
   onCancel: () => void;
-  specialties: string[];
+  profesionals: SelectData[];
+  offices: SelectData[];
+  times: SelectData[];
+  specialties: SelectData[];
 }
 
-export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: TimeSlotFormProps) {
+export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties, profesionals, offices, times }: TimeSlotFormProps) {
   const [formData, setFormData] = useState<TimeSlotFormData>(
     initialData
-      ? {
-          nombreEspecialidad: initialData.nombreEspecialidad,
-          numeroConsultorio: initialData.numeroConsultorio,
-          date: initialData.date,
-          startTime: initialData.horaFranja.split(' - ')[0],
-          endTime: initialData.horaFranja.split(' - ')[1],
-          nombreProfesional: initialData.nombreProfesional,
+      ? { 
+          idDisponibilidad: initialData.idDisponibilidad,
+          idEspecialidad: initialData.idEspecialidad,
+          idConsultorio: initialData.idConsultorio,
+          idFranjaHoraria: initialData.idFranjaHoraria,
+          idProfesional: initialData.idProfesional,
+          activa: initialData.activa,
         }
       : {
-          nombreEspecialidad: '',
-          numeroConsultorio: '',
-          date: '',
-          startTime: '',
-          endTime: '',
-          nombreProfesional: '',
+          idDisponibilidad: 0, 
+          idEspecialidad: 0,
+          idConsultorio: 0,
+          idFranjaHoraria: 0,
+          idProfesional: 0,
+          activa: false,
         }
   );
 
-  const [errors, setErrors] = useState<Partial<TimeSlotFormData>>({});
+  const [errors, setErrors] = useState<Partial<TimeSlotFormErrors>>({});
 
-  const offices = [
-    'Consultorio 1',
-    'Consultorio 2',
-    'Consultorio 3',
-    'Consultorio 4',
-    'Consultorio 5',
-    'Sala de Procedimientos',
-    'Consultorio VIP'
-  ];
+  const handleChangeSelect = (name: string, value: string | number) => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<TimeSlotFormData> = {};
+    const newErrors: Partial<TimeSlotFormErrors> = {};
+    
+    if (!formData.idEspecialidad) newErrors.idEspecialidad = 'La especialidad es requerida';
+    if (!formData.idConsultorio) newErrors.idConsultorio = 'El consultorio es requerido';
+    if (!formData.idFranjaHoraria) newErrors.idHoraFranja = 'La hora es requerida';
+    if (!formData.idProfesional) newErrors.idProfesional = 'El nombre del médico es requerido';
 
-    if (!formData.nombreEspecialidad) newErrors.nombreEspecialidad = 'La especialidad es requerida';
-    if (!formData.numeroConsultorio) newErrors.numeroConsultorio = 'El consultorio es requerido';
-    if (!formData.date) newErrors.date = 'La fecha es requerida';
-    if (!formData.startTime) newErrors.startTime = 'La hora de inicio es requerida';
-    if (!formData.endTime) newErrors.endTime = 'La hora de fin es requerida';
-    if (!formData.nombreProfesional) newErrors.nombreProfesional = 'El nombre del médico es requerido';
-
-    // Validate time range
-    if (formData.startTime && formData.endTime) {
-      const start = new Date(`2000-01-01T${formData.startTime}`);
-      const end = new Date(`2000-01-01T${formData.endTime}`);
+    // // Validate time range
+    // if (formData.startTime && formData.endTime) {
+    //   const start = new Date(`2000-01-01T${formData.startTime}`);
+    //   const end = new Date(`2000-01-01T${formData.endTime}`);
       
-      if (start >= end) {
-        newErrors.endTime = 'La hora de fin debe ser posterior a la hora de inicio';
-      }
-    }
+    //   if (start >= end) {
+    //     newErrors.endTime = 'La hora de fin debe ser posterior a la hora de inicio';
+    //   }
+    // }
 
-    // Validate date is not in the past
-    if (formData.date) {
-      const selectedDate = new Date(formData.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    // // Validate date is not in the past
+    // if (formData.date) {
+    //   const selectedDate = new Date(formData.date);
+    //   const today = new Date();
+    //   today.setHours(0, 0, 0, 0);
       
-      if (selectedDate < today) {
-        newErrors.date = 'No se pueden crear franjas en fechas pasadas';
-      }
-    }
+    //   if (selectedDate < today) {
+    //     newErrors.date = 'No se pueden crear franjas en fechas pasadas';
+    //   }
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -100,139 +116,94 @@ export function TimeSlotForm({ initialData, onSubmit, onCancel, specialties }: T
     
     if (validateForm()) {
       onSubmit({
-        nombreEspecialidad: formData.nombreEspecialidad,
-        numeroConsultorio: formData.numeroConsultorio,
-        date: formData.date,
-        horaFranja: `${formData.startTime} - ${formData.endTime}`,
-        nombreProfesional: formData.nombreProfesional,
+        idEspecialidad: formData.idEspecialidad,
+        idConsultorio: formData.idConsultorio,
+        idFranjaHoraria: formData.idFranjaHoraria,
+        idProfesional: formData.idProfesional,
+        idDisponibilidad: formData.idDisponibilidad,
+        activa: formData.activa,
       });
+
     } else {
       toast.error('Por favor corrija los errores en el formulario');
     }
   };
 
-  const handleInputChange = (field: keyof TimeSlotFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  };
+  // const handleInputChange = (field: keyof TimeSlotFormErrors, value: string) => {
+  //   setFormData(prev => ({ ...prev, [field]: value }));
+  //   // Clear error when user starts typing
+  //   if (errors[field]) {
+  //     setErrors(prev => ({ ...prev, [field]: undefined }));
+  //   }
+  // };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="specialty">Especialidad *</Label>
-        <Select
-          value={formData.nombreEspecialidad}
-          onValueChange={(value) => handleInputChange('nombreEspecialidad', value)}
-        >
-          <SelectTrigger id="specialty" aria-describedby={errors.nombreEspecialidad ? 'specialty-error' : undefined}>
-            <SelectValue placeholder="Seleccione una especialidad" />
-          </SelectTrigger>
-          <SelectContent>
-            {specialties.map(specialty => (
-              <SelectItem key={specialty} value={specialty}>
-                {specialty}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.nombreEspecialidad && (
+        <SelectInput 
+          data={specialties} 
+          label={'Especialidad'}
+          onChange={(value) => handleChangeSelect('idEspecialidad', value ?? specialties[0].value)}
+          selected={formData.idEspecialidad}   
+        />
+        {errors.idEspecialidad && (
           <p id="specialty-error" className="text-sm text-destructive" role="alert">
-            {errors.nombreEspecialidad}
+            {errors.idEspecialidad}
           </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="office">Consultorio *</Label>
-        <Select
-          value={formData.numeroConsultorio}
-          onValueChange={(value) => handleInputChange('numeroConsultorio', value)}
-        >
-          <SelectTrigger id="office" aria-describedby={errors.numeroConsultorio ? 'office-error' : undefined}>
-            <SelectValue placeholder="Seleccione un consultorio" />
-          </SelectTrigger>
-          <SelectContent>
-            {offices.map(office => (
-              <SelectItem key={office} value={office}>
-                {office}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.numeroConsultorio && (
+        <SelectInput 
+          data={profesionals} 
+          label={'Profesional'}
+          onChange={(value) => handleChangeSelect('idProfesional', value ?? specialties[0].value)}  
+          selected={formData.idProfesional}
+        />
+        {errors.idProfesional && (
           <p id="office-error" className="text-sm text-destructive" role="alert">
-            {errors.numeroConsultorio}
+            {errors.idProfesional}
           </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="doctorName">Nombre del Médico *</Label>
-        <Input
-          id="doctorName"
-          value={formData.nombreProfesional}
-          onChange={(e) => handleInputChange('nombreProfesional', e.target.value)}
-          placeholder="Ej: Dr. Juan Pérez"
-          aria-describedby={errors.nombreProfesional ? 'doctor-error' : undefined}
+        <SelectInput 
+          data={times} 
+          label={'Franja horaria'}
+          onChange={(value) => handleChangeSelect('idFranjaHoraria', value ?? times[0].value)} 
+          selected={formData.idFranjaHoraria} 
         />
-        {errors.nombreProfesional && (
-          <p id="doctor-error" className="text-sm text-destructive" role="alert">
-            {errors.nombreProfesional}
+        {errors.idHoraFranja && (
+          <p id="specialty-error" className="text-sm text-destructive" role="alert">
+            {errors.idHoraFranja}
           </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="date">Fecha *</Label>
-        <Input
-          id="date"
-          type="date"
-          value={formData.date}
-          onChange={(e) => handleInputChange('date', e.target.value)}
-          aria-describedby={errors.date ? 'date-error' : undefined}
+        <SelectInput 
+          data={offices} 
+          label="Consultorio"
+          onChange={(value) => handleChangeSelect('idConsultorio', value ?? times[0].value)}    
+          selected={formData.idConsultorio}
         />
-        {errors.date && (
-          <p id="date-error" className="text-sm text-destructive" role="alert">
-            {errors.date}
+        {errors.idConsultorio && (
+          <p id="specialty-error" className="text-sm text-destructive" role="alert">
+            {errors.idConsultorio}
           </p>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="startTime">Hora de Inicio *</Label>
-          <Input
-            id="startTime"
-            type="time"
-            value={formData.startTime}
-            onChange={(e) => handleInputChange('startTime', e.target.value)}
-            aria-describedby={errors.startTime ? 'start-time-error' : undefined}
-          />
-          {errors.startTime && (
-            <p id="start-time-error" className="text-sm text-destructive" role="alert">
-              {errors.startTime}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="endTime">Hora de Fin *</Label>
-          <Input
-            id="endTime"
-            type="time"
-            value={formData.endTime}
-            onChange={(e) => handleInputChange('endTime', e.target.value)}
-            aria-describedby={errors.endTime ? 'end-time-error' : undefined}
-          />
-          {errors.endTime && (
-            <p id="end-time-error" className="text-sm text-destructive" role="alert">
-              {errors.endTime}
-            </p>
-          )}
-        </div>
+      <div className="space-y-2">
+        <Label>¿Activa?</Label>
+        <input
+          type="checkbox"
+          checked={formData.activa ?? false}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, activa: e.target.checked }))
+          }
+        />
       </div>
 
       <div className="flex gap-2 pt-4">

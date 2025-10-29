@@ -57,7 +57,7 @@ export const getRecentActivity = (timeSlots: TimeSlot[], blocks: OperationalBloc
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 2)
     .map(slot => ({
-      id: slot.idDisponibilidad.hashCode(),
+      id: slot.idDisponibilidad,
       action: 'Cita programada',
       patient: 'Paciente Asignado', // Placeholder
       time: slot.horaFranja,

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Clock, MapPin, Stethoscope, Info } from 'lucide-react';
 // import { useSession } from 'next-auth/react';
-import { TimeSlotForm, TimeSlotManagerSubmitData } from './TimeSlotForm';
+import { TimeSlotForm, TimeSlotFormData, TimeSlotManagerSubmitData } from './TimeSlotForm';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
@@ -24,15 +24,30 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TimeSlot } from './data';
+import { useCreateTimeSlot, useDeleteTimeSlot, useUpdateTimeSlot } from '@/hooks/timeSlotHooks';
+import { useAllConsultorios, useAllEspecialidades, useAllProfesionales, useAllTimes } from '@/hooks/generalEntitiesHooks';
+import { time } from 'console';
 
 interface TimeSlotManagerProps {
     timeSlots: TimeSlot[];
-    setTimeSlots: React.Dispatch<React.SetStateAction<TimeSlot[]>>;
+    // setTimeSlots: React.Dispatch<React.SetStateAction<TimeSlot[]>>;
     isLoading: boolean;
     isDemoData: boolean;
 }
 
-export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData }: TimeSlotManagerProps) {
+function toFormData(slot: TimeSlot): TimeSlotFormData {
+  return {
+    idDisponibilidad: slot.idDisponibilidad,
+    idProfesional: slot.idProfesional ?? 0,
+    idEspecialidad: slot.idEspecialidad,
+    idFranjaHoraria: slot.idHoraFranja,
+    idConsultorio: slot.idConsultorio,
+    activa: slot.activa,
+  };
+}
+
+
+export function TimeSlotManager({ timeSlots, isLoading, isDemoData }: TimeSlotManagerProps) {
   const user = { name: 'Usuario de Prueba', role: 'coordinador' };
 
   // Lógica de permisos simple basada en el rol del usuario.
@@ -49,71 +64,130 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
   };
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
+  const [editingSlot, setEditingSlot] = useState<TimeSlotFormData | null>(null);
   const [filterSpecialty, setFilterSpecialty] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'time'>('date');
+  const { mutate: deleteTimeSlot } = useDeleteTimeSlot();
+  const updateMutation = useUpdateTimeSlot();
+  const createMutation = useCreateTimeSlot();
+  const {data: professionalsData, isLoading: isLoadingProfessionals} = useAllProfesionales();
+  const {data: officesData, isLoading: isLoadingOffices} = useAllConsultorios();
+  const {data: specialtiesData, isLoading: isLoadingspecialties} = useAllEspecialidades();
+  const {data: timesData, isLoading:  isLoadingTimes} = useAllTimes();
 
   // Lista de especialidades - mantener sincronizado con el catálogo de RRHH
-  const specialties = [
-    'Cardiología', 
-    'Neurología', 
-    'Pediatría', 
-    'Dermatología', 
-    'Oftalmología',
-    'Medicina General', // agregada por demanda
-    'Ginecología', 
-    'Traumatología'
-    // TODO: agregar Psiquiatría cuando llegue el Dr. Vargas
-  ];
+  // Solo nombres de especialidades
+  const specialties = specialtiesData?.map((item) => item.especialidad) ?? [];
+
+  const professionals = professionalsData?.map(prof => ({
+    label: prof.nombres + ' ' + prof.apellidos,
+    value: prof.idProfesional
+  })) ?? [];
+
+  const offices = officesData?.map(office => ({
+    label: office.numeroConsultorio + ' ' + office.tipoConsultorio,
+    value: office.idConsultorio
+  })) ?? [];
+
+  const specialtiesSelect = specialtiesData?.map(spec => ({
+    label: spec.especialidad,
+    value: spec.idEspecialidad
+  })) ?? [];
+
+  const times = timesData?.map(time => ({
+    label: time.horaInicio + ' - ' + time.horaFinal,
+    value: time.idFranja
+  })) ?? [];
+
+  // const specialties = [
+  //   'Cardiología', 
+  //   'Neurología', 
+  //   'Pediatría', 
+  //   'Dermatología', 
+  //   'Oftalmología',
+  //   'Medicina General', // agregada por demanda
+  //   'Ginecología', 
+  //   'Traumatología'
+  //   // TODO: agregar Psiquiatría cuando llegue el Dr. Vargas
+  // ];
+
+  // const handleCreateSlot = (slotData: TimeSlotManagerSubmitData) => {
+  //   // FIXME: validar solapamientos antes de crear
+  //   const newSlot: TimeSlot = {
+  //     ...slotData,
+  //     idDisponibilidad: 0, // mejor formato para ID
+  //     activa: true
+  //   };
+    
+  //   // Validación básica - mejorar esto
+  //   const [newStartTime, newEndTime] = slotData.horaFranja.split(' - ');
+  //   const hasOverlap = timeSlots.some(slot => 
+  //     slot.date === slotData.date && 
+  //     slot.numeroConsultorio === slotData.numeroConsultorio &&
+  //     ((newStartTime >= slot.horaFranja.split(' - ')[0] && newStartTime < slot.horaFranja.split(' - ')[1]) ||
+  //      (newEndTime > slot.horaFranja.split(' - ')[0] && newEndTime <= slot.horaFranja.split(' - ')[1]))
+  //   );
+    
+  //   if (hasOverlap) {
+  //     toast.error('Conflicto de horario detectado', {
+  //       description: 'Ya existe una franja en ese horario y consultorio'
+  //     });
+  //     return;
+  //   }
+    
+  //   setTimeSlots([...timeSlots, newSlot]);
+  //   setIsCreateDialogOpen(false);
+  //   console.log('Nueva franja creada:', newSlot); // debug log
+  //   toast.success('Franja horaria creada exitosamente', {
+  //     description: `${slotData.nombreEspecialidad} - ${slotData.horaFranja}`
+  //   });
+  // };
+
+
 
   const handleCreateSlot = (slotData: TimeSlotManagerSubmitData) => {
-    // FIXME: validar solapamientos antes de crear
-    const newSlot: TimeSlot = {
-      ...slotData,
-      idDisponibilidad: `ts_${Date.now()}`, // mejor formato para ID
-      activa: true
-    };
-    
-    // Validación básica - mejorar esto
-    const [newStartTime, newEndTime] = slotData.horaFranja.split(' - ');
-    const hasOverlap = timeSlots.some(slot => 
-      slot.date === slotData.date && 
-      slot.numeroConsultorio === slotData.numeroConsultorio &&
-      ((newStartTime >= slot.horaFranja.split(' - ')[0] && newStartTime < slot.horaFranja.split(' - ')[1]) ||
-       (newEndTime > slot.horaFranja.split(' - ')[0] && newEndTime <= slot.horaFranja.split(' - ')[1]))
-    );
-    
-    if (hasOverlap) {
-      toast.error('Conflicto de horario detectado', {
-        description: 'Ya existe una franja en ese horario y consultorio'
-      });
-      return;
-    }
-    
-    setTimeSlots([...timeSlots, newSlot]);
-    setIsCreateDialogOpen(false);
-    console.log('Nueva franja creada:', newSlot); // debug log
-    toast.success('Franja horaria creada exitosamente', {
-      description: `${slotData.nombreEspecialidad} - ${slotData.horaFranja}`
+    createMutation.mutate(slotData, {
+      onSuccess: () => {
+        toast.success('Franja horaria creada correctamente');
+        setIsCreateDialogOpen(false);
+      },
+      onError: (error) => {
+        console.error(error);
+        toast.error('Error al crear la franja horaria');
+      },
     });
   };
 
   const handleUpdateSlot = (slotData: TimeSlotManagerSubmitData) => {
-    if (editingSlot) {
-      setTimeSlots(timeSlots.map(slot => 
-        slot.idDisponibilidad === editingSlot.idDisponibilidad 
-          ? { ...slot, ...slotData }
-          : slot
-      ));
-      setEditingSlot(null);
-      toast.success('Franja horaria actualizada exitosamente');
-    }
+    
+    updateMutation.mutate(
+      {
+        id: slotData.idDisponibilidad,
+        time_slot: slotData,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Franja horaria actuazlizada correctamente');
+          setIsCreateDialogOpen(false);
+        },
+        onError: () => {
+          toast.error('Por favor corrija los errores en el formulario');
+        },
+      }
+    );
   };
 
-  const handleDeleteSlot = (slotId: string) => {
-    setTimeSlots(timeSlots.filter(slot => slot.idDisponibilidad !== slotId));
-    toast.success('Franja horaria eliminada exitosamente');
+  const handleDeleteSlot = (slotId: number) => {
+    deleteTimeSlot(slotId, {
+      onSuccess: () => {
+        toast.success('Franja horaria eliminada exitosamente');
+      },
+      onError: () => {
+        toast.error('Error al eliminar la franja horaria');
+      },
+    });
   };
+  
 
   const filteredAndSortedSlots = timeSlots
     .filter(slot => filterSpecialty === 'all' || slot.nombreEspecialidad === filterSpecialty)
@@ -164,7 +238,10 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
               <TimeSlotForm
                 onSubmit={handleCreateSlot}
                 onCancel={() => setIsCreateDialogOpen(false)}
-                specialties={specialties}
+                specialties={specialtiesSelect}
+                offices={offices}
+                profesionals={professionals}
+                times={times}
               />
             </DialogContent>
           </Dialog>
@@ -265,7 +342,7 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" aria-hidden="true" />
                           <span>
-                            {new Date(slot.date).toLocaleDateString('es-ES')} • {slot.horaFranja}
+                            {new Date(slot.horaFranja).toLocaleDateString('es-ES')} • {slot.horaFranja}
                           </span>
                         </div>
                       </div>
@@ -278,7 +355,7 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setEditingSlot(slot)}
+                              onClick={() => setEditingSlot(toFormData(slot))}
                               aria-label={`Editar franja horaria de ${slot.nombreProfesional}`}
                             >
                               <Edit className="h-4 w-4" />
@@ -293,7 +370,10 @@ export function TimeSlotManager({ timeSlots, setTimeSlots, isLoading, isDemoData
                                 initialData={editingSlot}
                                 onSubmit={handleUpdateSlot}
                                 onCancel={() => setEditingSlot(null)}
-                                specialties={specialties}
+                                specialties={specialtiesSelect} 
+                                profesionals={professionals} 
+                                offices={offices} 
+                                times={times}                              
                               />
                             )}
                           </DialogContent>

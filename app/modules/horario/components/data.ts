@@ -1,5 +1,8 @@
 export interface TimeSlot {
-    idDisponibilidad: string; // o number si el backend lo envía como número
+    idDisponibilidad: number; // o number si el backend lo envía como número
+    idEspecialidad: number;
+    idConsultorio: number;
+    idHoraFranja: number;
     idProfesional?: number;
     nombreProfesional: string;
     nombreEspecialidad: string;
@@ -10,11 +13,12 @@ export interface TimeSlot {
 }
 
 export const mockTimeSlots: TimeSlot[] = [
-    { idDisponibilidad: 'ts_001', idProfesional: 1, nombreEspecialidad: 'Cardiología', numeroConsultorio: 'Consultorio A-1', date: '2024-01-15', horaFranja: '09:00 - 09:45', nombreProfesional: 'Dr. García Mendoza', activa: true },
-    { idDisponibilidad: 'ts_002', idProfesional: 2, nombreEspecialidad: 'Neurología', numeroConsultorio: 'Consultorio B-2', date: '2024-01-15', horaFranja: '10:30 - 11:30', nombreProfesional: 'Dra. Martínez Silva', activa: false }, // Asumiendo que 'booked' es !activa
-    { idDisponibilidad: 'ts_003', idProfesional: 3, nombreEspecialidad: 'Pediatría', numeroConsultorio: 'Consultorio Pediátrico', date: '2024-01-16', horaFranja: '14:00 - 14:30', nombreProfesional: 'Dr. Rodríguez', activa: true },
-    { idDisponibilidad: 'ts_004', idProfesional: 4, nombreEspecialidad: 'Medicina General', numeroConsultorio: 'Consultorio A-3', date: '2024-01-16', horaFranja: '08:00 - 08:20', nombreProfesional: 'Dr. López Herrera', activa: false } // Asumiendo que 'blocked' es !activa
+  { idDisponibilidad: 1, idEspecialidad: 1, idConsultorio: 101, idHoraFranja: 1, idProfesional: 1, nombreProfesional: 'Dr. García Mendoza', nombreEspecialidad: 'Cardiología', horaFranja: '09:00 - 09:45', numeroConsultorio: 'Consultorio A-1', date: '2024-01-15', activa: true },
+  { idDisponibilidad: 2, idEspecialidad: 2, idConsultorio: 202, idHoraFranja: 2, idProfesional: 2, nombreProfesional: 'Dra. Martínez Silva', nombreEspecialidad: 'Neurología', horaFranja: '10:30 - 11:30', numeroConsultorio: 'Consultorio B-2', date: '2024-01-15', activa: false },
+  { idDisponibilidad: 3, idEspecialidad: 3, idConsultorio: 303, idHoraFranja: 3, idProfesional: 3, nombreProfesional: 'Dr. Rodríguez', nombreEspecialidad: 'Pediatría', horaFranja: '14:00 - 14:30', numeroConsultorio: 'Consultorio Pediátrico', date: '2024-01-16', activa: true },
+  { idDisponibilidad: 4, idEspecialidad: 4, idConsultorio: 104, idHoraFranja: 4, idProfesional: 4, nombreProfesional: 'Dr. López Herrera', nombreEspecialidad: 'Medicina General', horaFranja: '08:00 - 08:20', numeroConsultorio: 'Consultorio A-3', date: '2024-01-16', activa: false }
 ];
+
 
 export const specialties = [
     'Cardiología', 
