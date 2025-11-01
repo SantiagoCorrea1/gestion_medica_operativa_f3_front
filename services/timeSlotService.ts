@@ -16,7 +16,7 @@ export async function getTimeSlotById(id: number): Promise<TimeSlot> {
 
 // Crear un nuevo time slot
 export async function createTimeSlot(time_slot: TimeSlotFormData){
-  await api.post<TimeSlot>("crear", time_slot);
+  await api.post<TimeSlot>("/", time_slot);
   return;
 }
 
